@@ -1,0 +1,30 @@
+{
+  "name": "bugadani/factory",
+  "description": "A simple DIC library",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "type": "library",
+  "keywords": [
+    "framework",
+    "dependency injection",
+    "DIC"
+  ],
+  "require": {
+    "php": ">=5.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "4.*"
+  },
+  "authors": [
+    {
+      "name": "Dániel Buga",
+      "email": "bugadani@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Factory\\": "src/",
+      "Factory\\Test\\": "test/"
+    }
+  }
+}
