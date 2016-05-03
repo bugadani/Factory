@@ -56,7 +56,7 @@ class Constructor
      * @param \ReflectionParameter[] $constructorParameters
      * @param array                  $parameters
      *
-     * @return mixed
+     * @return array
      */
     private function prepareParameters($constructorParameters, $parameters)
     {
@@ -124,6 +124,7 @@ class Constructor
             $constructor = $this->reflector->getConstructor();
 
             if ($constructor === null) {
+                //This caches the fact that the class has no constructor
                 $this->constructorArgs = [];
             } else {
                 $this->constructorArgs = $constructor->getParameters();

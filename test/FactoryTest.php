@@ -27,9 +27,9 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testSimpleLoading()
     {
-        $object = $this->factory->get('stdClass');
+        $object = $this->factory->get(\stdClass::class);
 
-        $this->assertInstanceOf('stdClass', $object);
+        $this->assertInstanceOf(\stdClass::class, $object);
     }
 
     /**
@@ -116,8 +116,8 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testThatInstancesAreStored()
     {
-        $objectA = $this->factory->get('stdClass');
-        $objectB = $this->factory->get('stdClass');
+        $objectA = $this->factory->get(\stdClass::class);
+        $objectB = $this->factory->get(\stdClass::class);
 
         $this->assertSame($objectA, $objectB);
 
@@ -137,7 +137,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testThatStoredObjectsAreInjected()
     {
-        $std    = $this->factory->get('stdClass');
+        $std    = $this->factory->get(\stdClass::class);
         $object = $this->factory->get(TestClassWithObjectParameter::class);
 
         $this->assertSame($std, $object->class);
@@ -145,7 +145,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testThatDefaultsCanBeOverridden()
     {
-        $std    = $this->factory->get('stdClass');
+        $std    = $this->factory->get(\stdClass::class);
         $object = $this->factory->get(TestClassWithObjectParameter::class, [new \stdClass()]);
         $this->assertNotSame($std, $object->class);
 
@@ -218,7 +218,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     {
         $std = new \stdClass();
         $this->factory->addInstance($std);
-        $object = $this->factory->get('stdClass');
+        $object = $this->factory->get(\stdClass::class);
 
         $this->assertSame($std, $object);
     }
@@ -234,18 +234,18 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     {
         $called = 0;
         $this->factory->addCallback(
-            'stdClass',
+            \stdClass::class,
             function () use (&$called) {
                 $called++;
             }
         );
         $this->factory->addCallback(
-            'stdClass',
+            \stdClass::class,
             function () use (&$called) {
                 $called++;
             }
         );
-        $this->factory->get('stdClass');
+        $this->factory->get(\stdClass::class);
         $this->assertEquals(2, $called);
     }
 
