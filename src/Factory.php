@@ -13,6 +13,14 @@ class Factory
     private $storedInstances = [];
     private $classNameMap    = [];
 
+    /**
+     * @param $className
+     */
+    protected function createConstructor($className)
+    {
+        $this->constructors[ $className ] = new Constructor($this, $className);
+    }
+
     public function setAlias($className, $alias)
     {
         $this->stringTypeGuard($className);
@@ -46,7 +54,7 @@ class Factory
     {
         $this->stringTypeGuard($className);
         if (!isset($this->constructors[ $className ])) {
-            $this->constructors[ $className ] = new Constructor($this, $className);
+            $this->createConstructor($className);
         }
         $this->constructors[ $className ]->setParameters($parameters);
     }
@@ -55,7 +63,7 @@ class Factory
     {
         $this->stringTypeGuard($className);
         if (!isset($this->constructors[ $className ])) {
-            $this->constructors[ $className ] = new Constructor($this, $className);
+            $this->createConstructor($className);
         }
         $this->constructors[ $className ]->addCallback($callback);
     }
@@ -74,7 +82,7 @@ class Factory
         }
 
         if (!isset($this->constructors[ $className ])) {
-            $this->constructors[ $className ] = new Constructor($this, $className);
+            $this->createConstructor($className);
         }
 
         try {

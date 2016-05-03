@@ -3,11 +3,18 @@
 namespace Factory\Test;
 
 use Factory\Factory;
+use Factory\Test\Mocks\AbstractTestClass;
+use Factory\Test\Mocks\TestClass;
+use Factory\Test\Mocks\TestClassWithDefaultParameter;
+use Factory\Test\Mocks\TestClassWithNotDirectlyInstantiableObjectParameter;
+use Factory\Test\Mocks\TestClassWithObjectParameter;
+use Factory\Test\Mocks\TestClassWithOptionalNotDirectlyInstantiableObjectParameter;
+use Factory\Test\Mocks\TestClassWithPrivateConstructor;
 
 class FactoryTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Factory\FactoryInterface
+     * @var \Factory\Factory
      */
     private $factory;
 
@@ -41,7 +48,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadingWithParametersInjection()
     {
-        $object = $this->factory->get('Factory\Test\Mocks\TestClass', ['armadillo', 'banana']);
+        $object = $this->factory->get(TestClass::class, ['armadillo', 'banana']);
 
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
@@ -52,7 +59,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testLoadingWithTooFewParameters()
     {
-        $this->factory->get('Factory\Test\Mocks\TestClass', ['armadillo']);
+        $this->factory->get(TestClass::class, ['armadillo']);
     }
 
     /**
@@ -60,12 +67,12 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testLoadingWithMultipleMissingParameters()
     {
-        $this->factory->get('Factory\Test\Mocks\TestClass');
+        $this->factory->get(TestClass::class);
     }
 
     public function testLoadingWithNamedParametersInjection()
     {
-        $object = $this->factory->get('Factory\Test\Mocks\TestClass', ['b' => 'banana', 'a' => 'armadillo']);
+        $object = $this->factory->get(TestClass::class, ['b' => 'banana', 'a' => 'armadillo']);
 
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
@@ -73,7 +80,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadingWithDefaultParameters()
     {
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithDefaultParameter', ['armadillo']);
+        $object = $this->factory->get(TestClassWithDefaultParameter::class, ['armadillo']);
 
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('foobar', $object->b);
@@ -84,13 +91,13 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testLoadingWithMissingNamedParameters()
     {
-        $this->factory->get('Factory\Test\Mocks\TestClass', ['b' => 'banana']);
+        $this->factory->get(TestClass::class, ['b' => 'banana']);
     }
 
     public function testParameterDefinition()
     {
-        $this->factory->setParameters('Factory\Test\Mocks\TestClass', ['armadillo', 'banana']);
-        $object = $this->factory->get('Factory\Test\Mocks\TestClass');
+        $this->factory->setParameters(TestClass::class, ['armadillo', 'banana']);
+        $object = $this->factory->get(TestClass::class);
 
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
@@ -98,8 +105,8 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testNamedParameterDefinition()
     {
-        $this->factory->setParameters('Factory\Test\Mocks\TestClass', ['b' => 'banana', 'a' => 'armadillo']);
-        $object = $this->factory->get('Factory\Test\Mocks\TestClass');
+        $this->factory->setParameters(TestClass::class, ['b' => 'banana', 'a' => 'armadillo']);
+        $object = $this->factory->get(TestClass::class);
 
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
@@ -112,16 +119,16 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame($objectA, $objectB);
 
-        $this->factory->setParameters('Factory\Test\Mocks\TestClass', ['b' => 'banana', 'a' => 'armadillo']);
-        $objectA = $this->factory->get('Factory\Test\Mocks\TestClass');
-        $objectB = $this->factory->get('Factory\Test\Mocks\TestClass');
+        $this->factory->setParameters(TestClass::class, ['b' => 'banana', 'a' => 'armadillo']);
+        $objectA = $this->factory->get(TestClass::class);
+        $objectB = $this->factory->get(TestClass::class);
 
         $this->assertSame($objectA, $objectB);
     }
 
     public function testThatObjectDependenciesAreInjected()
     {
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithObjectParameter');
+        $object = $this->factory->get(TestClassWithObjectParameter::class);
 
         $this->assertInstanceOf('stdClass', $object->class);
     }
@@ -129,7 +136,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     public function testThatStoredObjectsAreInjected()
     {
         $std    = $this->factory->get('stdClass');
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithObjectParameter');
+        $object = $this->factory->get(TestClassWithObjectParameter::class);
 
         $this->assertSame($std, $object->class);
     }
@@ -137,21 +144,21 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     public function testThatDefaultsCanBeOverridden()
     {
         $std    = $this->factory->get('stdClass');
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithObjectParameter', [new \stdClass()]);
+        $object = $this->factory->get(TestClassWithObjectParameter::class, [new \stdClass()]);
         $this->assertNotSame($std, $object->class);
 
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithDefaultParameter', ['a' => 'armadillo', 'b' => 'baz']);
+        $object = $this->factory->get(TestClassWithDefaultParameter::class, ['a' => 'armadillo', 'b' => 'baz']);
         $this->assertEquals('baz', $object->b);
 
-        $this->factory->setParameters('Factory\Test\Mocks\TestClassWithDefaultParameter', ['b' => 'baz', 'a' => 'armadillo']);
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithDefaultParameter');
+        $this->factory->setParameters(TestClassWithDefaultParameter::class, ['b' => 'baz', 'a' => 'armadillo']);
+        $object = $this->factory->get(TestClassWithDefaultParameter::class);
         $this->assertEquals('baz', $object->b);
     }
 
     public function testThatNamedDefaultsCanBeOverridden()
     {
-        $this->factory->setParameters('Factory\Test\Mocks\TestClassWithDefaultParameter', ['b' => 'banana', 'a' => 'armadillo']);
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithDefaultParameter', ['b' => 'baz']);
+        $this->factory->setParameters(TestClassWithDefaultParameter::class, ['b' => 'banana', 'a' => 'armadillo']);
+        $object = $this->factory->get(TestClassWithDefaultParameter::class, ['b' => 'baz']);
 
         $this->assertEquals('baz', $object->b);
     }
@@ -161,7 +168,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testThatAliasesCanOnlyBeString()
     {
-        $this->factory->setAlias('Factory\Test\Mocks\TestClass', false);
+        $this->factory->setAlias(TestClass::class, false);
     }
 
     /**
@@ -175,32 +182,32 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testThatClassesCanBeAliased()
     {
-        $this->factory->setAlias('Factory\Test\Mocks\TestClass', 'FooClass');
+        $this->factory->setAlias(TestClass::class, 'FooClass');
         $object = $this->factory->get('FooClass', ['armadillo', 'banana']);
 
-        $this->assertInstanceOf('Factory\Test\Mocks\TestClass', $object);
+        $this->assertInstanceOf(TestClass::class, $object);
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
     }
 
     public function testThatAliasesCanBeAliased()
     {
-        $this->factory->setAlias('Factory\Test\Mocks\TestClass', 'FooClass');
+        $this->factory->setAlias(TestClass::class, 'FooClass');
         $this->factory->setAlias('FooClass', 'BarClass');
         $object = $this->factory->get('BarClass', ['armadillo', 'banana']);
 
-        $this->assertInstanceOf('Factory\Test\Mocks\TestClass', $object);
+        $this->assertInstanceOf(TestClass::class, $object);
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
     }
 
     public function testThatAliasedClassesUseTheActualClassesParameters()
     {
-        $this->factory->setAlias('Factory\Test\Mocks\TestClass', 'FooClass');
-        $this->factory->setParameters('Factory\Test\Mocks\TestClass', ['armadillo', 'banana']);
+        $this->factory->setAlias(TestClass::class, 'FooClass');
+        $this->factory->setParameters(TestClass::class, ['armadillo', 'banana']);
         $object = $this->factory->get('FooClass');
 
-        $this->assertInstanceOf('Factory\Test\Mocks\TestClass', $object);
+        $this->assertInstanceOf(TestClass::class, $object);
         $this->assertEquals('armadillo', $object->a);
         $this->assertEquals('banana', $object->b);
     }
@@ -245,15 +252,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testThatPrivateConstructorThrowsException()
     {
-        $this->factory->get('Factory\Test\Mocks\TestClassWithPrivateConstructor');
-    }
-
-    /**
-     * @expectedException \Factory\Exceptions\InstantiationException
-     */
-    public function testThatInterfaceThrowsException()
-    {
-        $this->factory->get('Factory\FactoryInterface');
+        $this->factory->get(TestClassWithPrivateConstructor::class);
     }
 
     /**
@@ -261,7 +260,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testThatAbstractClassThrowsException()
     {
-        $this->factory->get('Factory\Test\Mocks\AbstractTestClass');
+        $this->factory->get(AbstractTestClass::class);
     }
 
     /**
@@ -269,22 +268,22 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testThatNotInstantiableRequiredClassesThrowException()
     {
-        $this->factory->get('Factory\Test\Mocks\TestClassWithNotDirectlyInstantiableObjectParameter');
+        $this->factory->get(TestClassWithNotDirectlyInstantiableObjectParameter::class);
     }
 
     public function testThatNotInstantiableOptionalClassesGetNull()
     {
-        $object = $this->factory->get('Factory\Test\Mocks\TestClassWithOptionalNotDirectlyInstantiableObjectParameter');
+        $object = $this->factory->get(TestClassWithOptionalNotDirectlyInstantiableObjectParameter::class);
         $this->assertNull($object->class);
     }
 
     public function testThatForcedInstanceIsNotStored()
     {
-        $this->factory->setParameters('Factory\Test\Mocks\TestClass', ['a' => 'armadillo', 'b' => 'banana']);
-        $objectA = $this->factory->get('Factory\Test\Mocks\TestClass', [], true);
-        $object = $this->factory->get('Factory\Test\Mocks\TestClass');
-        $objectB = $this->factory->get('Factory\Test\Mocks\TestClass', [], true);
-        $objectC = $this->factory->get('Factory\Test\Mocks\TestClass');
+        $this->factory->setParameters(TestClass::class, ['a' => 'armadillo', 'b' => 'banana']);
+        $objectA = $this->factory->get(TestClass::class, [], true);
+        $object = $this->factory->get(TestClass::class);
+        $objectB = $this->factory->get(TestClass::class, [], true);
+        $objectC = $this->factory->get(TestClass::class);
 
         $this->assertNotSame($object, $objectA);
         $this->assertNotSame($object, $objectB);
