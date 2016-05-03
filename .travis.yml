@@ -3,7 +3,6 @@ sudo: false
 language: php
 php:
   - 7
-  - hhvm
 
 before_script:
   - composer --prefer-source install
