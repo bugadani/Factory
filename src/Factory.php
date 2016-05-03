@@ -9,23 +9,20 @@ class Factory
     /**
      * @var Constructor[]
      */
-    private $constructors    = [];
+    private $constructors = [];
     private $storedInstances = [];
-    private $classNameMap    = [];
+    private $classNameMap = [];
 
     /**
      * @param $className
      */
-    protected function createConstructor($className)
+    protected function createConstructor(string $className)
     {
         $this->constructors[ $className ] = new Constructor($this, $className);
     }
 
-    public function setAlias($className, $alias)
+    public function setAlias(string $className, string $alias)
     {
-        $this->stringTypeGuard($className);
-        $this->stringTypeGuard($alias, 'alias');
-
         if (isset($this->classNameMap[ $className ]) && $this->classNameMap[ $className ] === $alias) {
             throw new \InvalidArgumentException(
                 "{$className} is already an alias of {$alias}, cannot set the reverse direction"
@@ -50,28 +47,24 @@ class Factory
         return $old;
     }
 
-    public function setParameters($className, array $parameters)
+    public function setParameters(string $className, array $parameters)
     {
-        $this->stringTypeGuard($className);
         if (!isset($this->constructors[ $className ])) {
             $this->createConstructor($className);
         }
         $this->constructors[ $className ]->setParameters($parameters);
     }
 
-    public function addCallback($className, callable $callback)
+    public function addCallback(string $className, callable $callback)
     {
-        $this->stringTypeGuard($className);
         if (!isset($this->constructors[ $className ])) {
             $this->createConstructor($className);
         }
         $this->constructors[ $className ]->addCallback($callback);
     }
 
-    public function get($className, array $arguments = [], $forceNew = false)
+    public function get(string $className, array $arguments = [], bool $forceNew = false)
     {
-        $this->stringTypeGuard($className);
-
         //while because 'alias of alias' is allowed
         while (isset($this->classNameMap[ $className ])) {
             $className = $this->classNameMap[ $className ];
@@ -95,16 +88,5 @@ class Factory
         }
 
         return $object;
-    }
-
-    /**
-     * @param $className
-     * @param $variableName
-     */
-    private function stringTypeGuard($className, $variableName = 'className')
-    {
-        if (!is_string($className)) {
-            throw new \InvalidArgumentException("\${$variableName} must be of type string");
-        }
     }
 }

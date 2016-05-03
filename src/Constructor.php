@@ -36,7 +36,7 @@ class Constructor
      */
     private $callbacks = [];
 
-    public function __construct(Factory $factory, $className)
+    public function __construct(Factory $factory, string $className)
     {
         $this->className = $className;
         $this->factory   = $factory;

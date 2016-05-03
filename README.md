@@ -3,7 +3,7 @@
 Factory
 ========
 
-Factory is a simple PHP dependency injection container for PHP 5.4 and newer.
+Factory is a simple PHP dependency injection container for PHP 7 and newer.
 
 Usage
 --------

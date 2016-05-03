@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Factory\Test;
 
 use Factory\Factory;
@@ -31,7 +33,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \TypeError
      */
     public function testNoStringParameters()
     {
@@ -164,7 +166,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \TypeError
      */
     public function testThatAliasesCanOnlyBeString()
     {
@@ -281,7 +283,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->factory->setParameters(TestClass::class, ['a' => 'armadillo', 'b' => 'banana']);
         $objectA = $this->factory->get(TestClass::class, [], true);
-        $object = $this->factory->get(TestClass::class);
+        $object  = $this->factory->get(TestClass::class);
         $objectB = $this->factory->get(TestClass::class, [], true);
         $objectC = $this->factory->get(TestClass::class);
 
