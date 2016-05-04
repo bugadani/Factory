@@ -2,6 +2,7 @@
 
 namespace Factory;
 
+use Factory\Exceptions\CircularAliasingException;
 use Factory\Exceptions\InstantiationException;
 
 class Factory
@@ -24,7 +25,7 @@ class Factory
     public function setAlias(string $className, string $alias)
     {
         if (isset($this->classNameMap[ $className ]) && $this->classNameMap[ $className ] === $alias) {
-            throw new \InvalidArgumentException(
+            throw new CircularAliasingException(
                 "{$className} is already an alias of {$alias}, cannot set the reverse direction"
             );
         }

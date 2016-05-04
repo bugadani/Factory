@@ -174,7 +174,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \Factory\Exceptions\CircularAliasingException
      */
     public function testCircularAliasesAreDisallowed()
     {
@@ -233,18 +233,14 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     public function testThatCallbacksAreFired()
     {
         $called = 0;
-        $this->factory->addCallback(
-            \stdClass::class,
-            function () use (&$called) {
-                $called++;
-            }
-        );
-        $this->factory->addCallback(
-            \stdClass::class,
-            function () use (&$called) {
-                $called++;
-            }
-        );
+        $incrementCalled = function () use (&$called) {
+            $called++;
+        };
+
+        //Add multiple callbacks
+        $this->factory->addCallback(\stdClass::class, $incrementCalled);
+        $this->factory->addCallback(\stdClass::class, $incrementCalled);
+
         $this->factory->get(\stdClass::class);
         $this->assertEquals(2, $called);
     }
