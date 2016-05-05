@@ -56,6 +56,14 @@ class Factory
         $this->constructors[ $className ]->setParameters($parameters);
     }
 
+    public function setParameter(string $className, $positionOrName, $parameter)
+    {
+        if (!isset($this->constructors[ $className ])) {
+            $this->createConstructor($className);
+        }
+        $this->constructors[ $className ]->setParameter($positionOrName, $parameter);
+    }
+
     public function addCallback(string $className, callable $callback)
     {
         if (!isset($this->constructors[ $className ])) {
@@ -81,13 +89,13 @@ class Factory
 
         try {
             $object = $this->constructors[ $className ]->instantiate($arguments);
+            if (!$forceNew) {
+                $this->storedInstances[ $className ] = $object;
+            }
+
+            return $object;
         } catch (\Exception $e) {
             throw new InstantiationException("Could not instantiate {$className}", $e);
         }
-        if (!$forceNew) {
-            $this->storedInstances[ $className ] = $object;
-        }
-
-        return $object;
     }
 }

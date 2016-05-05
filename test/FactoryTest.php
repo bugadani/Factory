@@ -214,6 +214,39 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('banana', $object->b);
     }
 
+    public function testThatPositionalParametersCanBeOverwritten()
+    {
+        $this->factory->setParameters(TestClass::class, ['armadillo', 'banana']);
+        $this->factory->setParameters(TestClass::class, ['coffee', 'chocolate']);
+        $object = $this->factory->get(TestClass::class);
+
+        $this->assertInstanceOf(TestClass::class, $object);
+        $this->assertEquals('coffee', $object->a);
+        $this->assertEquals('chocolate', $object->b);
+    }
+
+    public function testThatNamedParametersCanBeOverwritten()
+    {
+        $this->factory->setParameters(TestClass::class, ['b' => 'armadillo', 'a' => 'banana']);
+        $this->factory->setParameters(TestClass::class, ['b' => 'coffee', 'a' => 'chocolate']);
+        $object = $this->factory->get(TestClass::class);
+
+        $this->assertInstanceOf(TestClass::class, $object);
+        $this->assertEquals('coffee', $object->b);
+        $this->assertEquals('chocolate', $object->a);
+    }
+
+    public function testThatIndividualParametersCanBeSet()
+    {
+        $this->factory->setParameter(TestClass::class, 0, 'armadillo');
+        $this->factory->setParameter(TestClass::class, 'b', 'coffee');
+        $object = $this->factory->get(TestClass::class);
+
+        $this->assertInstanceOf(TestClass::class, $object);
+        $this->assertEquals('coffee', $object->b);
+        $this->assertEquals('armadillo', $object->a);
+    }
+
     public function testThatInstancesCanBeAdded()
     {
         $std = new \stdClass();
@@ -232,7 +265,7 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testThatCallbacksAreFired()
     {
-        $called = 0;
+        $called          = 0;
         $incrementCalled = function () use (&$called) {
             $called++;
         };
@@ -267,6 +300,14 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
     public function testThatNotInstantiableRequiredClassesThrowException()
     {
         $this->factory->get(TestClassWithNotDirectlyInstantiableObjectParameter::class);
+    }
+
+    /**
+     * @expectedException \Factory\Exceptions\InstantiationException
+     */
+    public function testThaMissingParameterThrows()
+    {
+        $this->factory->get(TestClass::class);
     }
 
     public function testThatNotInstantiableOptionalClassesGetNull()

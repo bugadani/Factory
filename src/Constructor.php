@@ -3,6 +3,7 @@
 namespace Factory;
 
 use Factory\Exceptions\InstantiationException;
+use Factory\Exceptions\ParameterMissingException;
 
 class Constructor
 {
@@ -42,9 +43,21 @@ class Constructor
         $this->factory   = $factory;
     }
 
+    /**
+     * @param array $parameters
+     */
     public function setParameters(array $parameters)
     {
-        $this->parameters = $parameters;
+        $this->parameters = $parameters + $this->parameters;
+    }
+
+    /**
+     * @param $positionOrName
+     * @param $parameter
+     */
+    public function setParameter($positionOrName, $parameter)
+    {
+        $this->parameters[ $positionOrName ] = $parameter;
     }
 
     public function addCallback(callable $callback)
@@ -52,53 +65,47 @@ class Constructor
         $this->callbacks[] = $callback;
     }
 
+    protected function resolveParameter($parameters, \ReflectionParameter $constructorArg)
+    {
+        $parameterName     = $constructorArg->getName();
+        $parameterPosition = $constructorArg->getPosition();
+
+        if (isset($parameters[ $parameterName ])) {
+            return $parameters[ $parameterName ];
+        } else if (isset($parameters[ $parameterPosition ])) {
+            return $parameters[ $parameterPosition ];
+        } else if (isset($this->parameters[ $parameterName ])) {
+            return $this->parameters[ $parameterName ];
+        } else if (isset($this->parameters[ $parameterPosition ])) {
+            return $this->parameters[ $parameterPosition ];
+        } else if ($constructorArg->getClass() !== null) {
+            try {
+                return $this->factory->get($constructorArg->getClass()->getName());
+            } catch (InstantiationException $e) {
+                if ($constructorArg->isDefaultValueAvailable()) {
+                    return $constructorArg->getDefaultValue();
+                } else {
+                    throw $e;
+                }
+            }
+        } else if ($constructorArg->isDefaultValueAvailable()) {
+            return $constructorArg->getDefaultValue();
+        } else {
+            throw new ParameterMissingException($parameterName);
+        }
+    }
+
     /**
      * @param \ReflectionParameter[] $constructorParameters
-     * @param array                  $parameters
+     * @param array $parameters
      *
      * @return array
      */
     private function prepareParameters($constructorParameters, $parameters)
     {
-        $return  = [];
-        $missing = [];
-
+        $return = [];
         foreach ($constructorParameters as $constructorArg) {
-            $parameterName     = $constructorArg->getName();
-            $parameterPosition = $constructorArg->getPosition();
-
-            if (isset($parameters[ $parameterName ])) {
-                $return[] = $parameters[ $parameterName ];
-            } else if (isset($parameters[ $parameterPosition ])) {
-                $return[] = $parameters[ $parameterPosition ];
-            } else if (isset($this->parameters[ $parameterName ])) {
-                $return[] = $this->parameters[ $parameterName ];
-            } else if (isset($this->parameters[ $parameterPosition ])) {
-                $return[] = $this->parameters[ $parameterPosition ];
-            } else if ($constructorArg->getClass() !== null) {
-                try {
-                    $return[] = $this->factory->get($constructorArg->getClass()->getName());
-                } catch (InstantiationException $e) {
-                    if ($constructorArg->isDefaultValueAvailable()) {
-                        $return[] = $constructorArg->getDefaultValue();
-                    } else {
-                        throw $e;
-                    }
-                }
-            } else if ($constructorArg->isDefaultValueAvailable()) {
-                $return[] = $constructorArg->getDefaultValue();
-            } else {
-                $missing[] = $parameterName;
-            }
-        }
-
-        if (!empty($missing)) {
-            if (count($missing) === 1) {
-                throw new \InvalidArgumentException("Parameter {$missing[0]} is not set");
-            } else {
-                $missingParameters = join(', ', $missing);
-                throw new \InvalidArgumentException("Parameters {$missingParameters} are not set");
-            }
+            $return[] = $this->resolveParameter($parameters, $constructorArg);
         }
 
         return $return;

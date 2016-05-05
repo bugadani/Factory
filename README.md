@@ -34,6 +34,8 @@ override the ones set via Factory::setParameters().
     $factory->setParameters(FooClass::class, ['b' => 'baz', 0 => 'foobar']);
     $instance = $factory->get(FooClass::class);
 
+Individual parameters can also be set using `$factory->setParameter(FooClass::class, $parameterNameOrPosition, $parameterValue)`
+
 Class names may also be aliased, which may be useful to inject interface implementations or extended classes.
 Aliased classes use the actual class' parameters.
 
